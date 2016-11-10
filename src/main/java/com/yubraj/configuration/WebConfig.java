@@ -5,10 +5,15 @@ import com.yubraj.model.User;
 import org.apache.commons.dbcp2.BasicDataSource;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.ehcache.EhCacheCacheManager;
+import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.orm.hibernate4.HibernateTransactionManager;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBuilder;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -28,6 +33,7 @@ import java.util.Properties;
 @EnableWebMvc
 @ComponentScan("com.yubraj")
 @EnableTransactionManagement
+@EnableCaching
 public class WebConfig extends WebMvcConfigurerAdapter{
 
     @Autowired
@@ -80,7 +86,18 @@ public class WebConfig extends WebMvcConfigurerAdapter{
         return transactionManager;
     }
 
+    @Bean
+    public CacheManager cacheManager(){
+        return new EhCacheCacheManager(ehCacheCacheManager().getObject());
+    }
 
+    @Bean
+    public EhCacheManagerFactoryBean ehCacheCacheManager(){
+        EhCacheManagerFactoryBean ehCacheManagerFactoryBean = new EhCacheManagerFactoryBean();
+        ehCacheManagerFactoryBean.setConfigLocation(new ClassPathResource("ecache.xml"));
+        ehCacheManagerFactoryBean.setShared(true);
+        return ehCacheManagerFactoryBean;
+    }
 
     @Override
     public void addResourceHandlers(final ResourceHandlerRegistry registry) {
